@@ -12,6 +12,7 @@ matplotlib = "*"
 smote = "*"
 imbalanced-learn = "*"
 numpy = "*"
+kagglehub = "*"
 
 [dev-packages]
 
