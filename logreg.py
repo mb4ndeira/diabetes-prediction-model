@@ -1,54 +1,34 @@
-
-
 import numpy as np
-from collections import defaultdict, Counter
 
-def sigmoid(z):
-    return 1 / (1 + np.exp(-z))
+def sigmoid(x):
+    return 1/(1+np.exp(-x))
 
-class LogisticRegression:
-    def __init__(self, max_iter=1000, learning_rate=0.01, tol=1e-4, fit_intercept=True):
-        self.max_iter = max_iter
-        self.learning_rate = learning_rate
-        self.tol = tol
-        self.fit_intercept = fit_intercept
-        self.coefficients = None
+class LogisticRegression():
 
-    def fit(self, X_train, y_train):
-        self.X_train = np.asarray(X_train, dtype=np.float64)
-        self.y_train = np.asarray(y_train, dtype=np.float64)
+    def __init__(self, max_iter=1000, lr=0.001):
+        self.lr = lr
+        self.n_iters = max_iter
+        self.weights = None
+        self.bias = None
 
-        if self.fit_intercept:
-            self.X_train = np.hstack((np.ones((self.X_train.shape[0], 1)), self.X_train))
+    def fit(self, X, y):
+        n_samples, n_features = X.shape
+        self.weights = np.zeros(n_features)
+        self.bias = 0
 
-        self.coefficients = np.zeros(self.X_train.shape[1])
+        for _ in range(self.n_iters):
+            linear_pred = np.dot(X, self.weights) + self.bias
+            predictions = sigmoid(linear_pred)
 
-        for _ in range(self.max_iter):
-            linear_model = np.dot(self.X_train, self.coefficients)
-            print (linear_model)
-            predictions = sigmoid(linear_model)
-            
-            difference = predictions - self.y_train
-            gradient = np.dot(self.X_train.T, difference) / self.X_train.shape[0]
-            
-            new_coefficients = self.coefficients - self.learning_rate * gradient
-            if np.linalg.norm(new_coefficients - self.coefficients, ord=1) < self.tol:
-                break
-            
-            self.coefficients = new_coefficients
+            dw = (1/n_samples) * np.dot(X.T, (predictions - y))
+            db = (1/n_samples) * np.sum(predictions-y)
+
+            self.weights = self.weights - self.lr*dw
+            self.bias = self.bias - self.lr*db
 
 
-    def predict(self, X_test):
-        X_test = np.asarray(X_test, dtype=np.float64)
-
-        if self.fit_intercept:
-            X_test = np.hstack((np.ones((X_test.shape[0], 1)), X_test))
-
-        linear_model = np.dot(X_test, self.coefficients)
-
-        probabilities = sigmoid(linear_model)
-
-        predictions = (probabilities >= 0.1).astype(int)  
-
-        return predictions
-
+    def predict(self, X):
+        linear_pred = np.dot(X, self.weights) + self.bias
+        y_pred = sigmoid(linear_pred)
+        class_pred = [0 if y<=0.5 else 1 for y in y_pred]
+        return class_pred
